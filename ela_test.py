@@ -4,7 +4,7 @@ import io
 
 class ELA:
     @staticmethod
-    def ela(image_path, quality=90):
+    def ela(image_path, quality=None):
         try:
             raw_image = Image.open(image_path)
             quantization_tables = getattr(raw_image, 'quantization', None) #fetches image's existing q-tables
@@ -12,8 +12,13 @@ class ELA:
             original_image = raw_image.convert('RGB')
 
             buffer = io.BytesIO()
-
-            original_image.save(buffer, 'JPEG', quality=quality) #if no q-table not found, use default quality for recompression
+            if quality is None:
+                if quantization_tables:
+                    original_image.save(buffer, 'JPEG', qtables=quantization_tables) #use quantization table for quality
+                else:
+                    original_image.save(buffer, 'JPEG', quality=90) #if no q-table not found, use default quality for recompression
+            else:
+                original_image.save(buffer, 'JPEG', quality=quality)
             buffer.seek(0)
             compressed_image = Image.open(buffer).convert('RGB')
 
@@ -50,7 +55,7 @@ class ELA:
             return None
 
 if __name__ == "__main__":
-    input_path = "whatsapp.jpeg"
+    input_path = "testcase3.jpg"
 
     ela_result_metrics, ela_result_image = ELA.ela(input_path)
 
