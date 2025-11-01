@@ -11,10 +11,8 @@ def ela(image_path, quality=90):
         original_image = raw_image.convert('RGB')
 
         buffer = io.BytesIO()
-        if quantization_tables:
-            original_image.save(buffer, 'JPEG', qtables=quantization_tables) #Uses q-table for recompression
-        else:
-            original_image.save(buffer, 'JPEG', quality=quality) #if no q-table not found, use default quality for recompression
+
+        original_image.save(buffer, 'JPEG', quality=quality) #if no q-table not found, use default quality for recompression
         buffer.seek(0)
         compressed_image = Image.open(buffer).convert('RGB')
 
