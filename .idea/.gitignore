@@ -1,3 +1,32 @@
 # Default ignored files
 /shelf/
 /workspace.xml
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Your specific folders
+/results/*        # Keep folder, ignore contents
+/app/static/*     # Keep folder, ignore contents
+
+# Logs
+*.log
+
+# Celery
+celerybeat-schedule

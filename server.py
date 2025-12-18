@@ -6,7 +6,7 @@ import uuid
 from fastapi import FastAPI, UploadFile, File
 from noise_analysis_test import NoiseAnalysis
 from jpeg_ghost_analysis import GHOST
-from metadata_analysis import MetadataForensics
+from metadata_analysis_final import MetadataForensics
 from dqt_aware_ela_test import ELA
 
 app = FastAPI()
