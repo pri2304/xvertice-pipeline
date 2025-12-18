@@ -1,6 +1,7 @@
 import numpy as np
 from PIL import Image, ImageChops, ImageEnhance
 import io
+import time
 
 class ELA:
     @staticmethod
@@ -55,9 +56,12 @@ class ELA:
             return None
 
 if __name__ == "__main__":
-    input_path = "original.jpg"
-
+    input_path = "twitter2.jpg" # Change this to image you want to check
+    start_time = time.time()
     ela_result_metrics, ela_result_image = ELA.ela(input_path)
+    end_time = time.time()
+    duration = end_time - start_time
+    print(f"DQT Aware ELA Test took {duration:.4f} seconds")
 
     print(ela_result_metrics)
 
