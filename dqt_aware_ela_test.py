@@ -56,7 +56,7 @@ class ELA:
             return None
 
 if __name__ == "__main__":
-    input_path = "twitter2.jpg" # Change this to image you want to check
+    input_path = "Testing Images/testcase13.jpg"  # Change this to image you want to check
     start_time = time.time()
     ela_result_metrics, ela_result_image = ELA.ela(input_path)
     end_time = time.time()
@@ -66,4 +66,4 @@ if __name__ == "__main__":
     print(ela_result_metrics)
 
     if ela_result_image:
-        ela_result_image.save("ela_result.png")
+        ela_result_image.save("Results/ela_result.png")

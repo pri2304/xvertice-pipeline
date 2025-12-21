@@ -237,7 +237,7 @@ class NoiseAnalysis:
 
 
 if __name__ == "__main__":
-    input_path = "testcase11.jpg" # Change this to image you want to check
+    input_path = "Testing Images/testcase13.jpg"  # Change this to image you want to check
 
     # 0. Exposure Check
     start_time = time.time()
@@ -252,7 +252,7 @@ if __name__ == "__main__":
     lap_metrics, lap_image = NoiseAnalysis.laplacian_check(input_path)
     end_time = time.time()
     print("Laplacian Metrics:", lap_metrics)
-    if lap_image: lap_image.save("laplacian_result.png")
+    if lap_image: lap_image.save("Results/laplacian_result.png")
     duration = end_time - start_time
     print(f"Laplacian took {duration:.4f} seconds")
 
@@ -261,7 +261,7 @@ if __name__ == "__main__":
     med_metrics, med_image = NoiseAnalysis.median_check(input_path)
     end_time = time.time()
     print("Median Metrics:", med_metrics)
-    if med_image: med_image.save("median_result.png")
+    if med_image: med_image.save("Results/median_result.png")
     duration = end_time - start_time
     print(f"Median took {duration:.4f} seconds")
 
@@ -270,7 +270,7 @@ if __name__ == "__main__":
     var_metrics, var_image = NoiseAnalysis.local_variance_check(input_path)
     end_time = time.time()
     print("Variance Metrics:", var_metrics)
-    if var_image: var_image.save("variance_result.png")
+    if var_image: var_image.save("Results/variance_result.png")
     duration = end_time - start_time
     print(f"Median took {duration:.4f} seconds")
 
@@ -279,6 +279,6 @@ if __name__ == "__main__":
     bag_metrics, bag_image = NoiseAnalysis.block_boundary_check(input_path)
     end_time = time.time()
     print("BAG Metrics:", bag_metrics)
-    if bag_image: bag_image.save("bag_result.png")
+    if bag_image: bag_image.save("Results/bag_result.png")
     duration = end_time - start_time
     print(f"Median took {duration:.4f} seconds")

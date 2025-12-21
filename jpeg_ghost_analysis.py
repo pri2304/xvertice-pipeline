@@ -8,7 +8,7 @@ class GHOST:
         return metrics, image
 
 if __name__ == "__main__":
-    input_path = "twitter2.jpg" # Change this to image you want to check
+    input_path = "Testing Images/testcase13.jpg"  # Change this to image you want to check
     start_time = time.time()
     jpeg_ghost_result_metrics, jpeg_ghost_result_image = GHOST.jpeg_ghost(input_path)
     end_time = time.time()
@@ -18,4 +18,4 @@ if __name__ == "__main__":
     print(jpeg_ghost_result_metrics)
 
     if jpeg_ghost_result_image:
-        jpeg_ghost_result_image.save("jpeg_ghost_result.png")
+        jpeg_ghost_result_image.save("Results/jpeg_ghost_result.png")

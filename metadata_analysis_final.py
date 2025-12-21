@@ -232,7 +232,7 @@ class MetadataForensics:
         return self.report
 
 
-image_path = "testcase1.jpeg" # Change this to image you want to check
+image_path = "Testing Images/testcase3.jpg"  # Change this to image you want to check
 
 if os.path.exists(image_path):
     start_time = time.time()
@@ -240,7 +240,7 @@ if os.path.exists(image_path):
     end_time = time.time()
     results = forensics.run_test()
 
-    print("\n[ Flags ]")
+    '''print("\n[ Flags ]")
     for k, v in results['flags'].items():
         status = "[!]" if v else "[ ]"
         print(f" {status} {k}")
@@ -252,4 +252,4 @@ if os.path.exists(image_path):
     duration = end_time - start_time
     print(f"Metadata Analysis took {duration:.4f} seconds")
 else:
-    print("Image not found.")
+    print("Image not found.")'''

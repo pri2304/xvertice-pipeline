@@ -106,7 +106,7 @@ class GANMonitor:
 
 
 if __name__ == "__main__":
-    input_path = "Testing Images/testcase20.jpeg"  # Change to your image
+    input_path = "Testing Images/testcase20.jpeg"
     start_time = time.time()
 
     gan_metrics, gan_graph = GANMonitor.analyze(input_path)

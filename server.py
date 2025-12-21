@@ -8,6 +8,9 @@ from noise_analysis_test import NoiseAnalysis
 from jpeg_ghost_analysis import GHOST
 from metadata_analysis_final import MetadataForensics
 from dqt_aware_ela_test import ELA
+from NLF import NLF
+from DCT import DCT
+from GAN_frequency import GANMonitor
 
 app = FastAPI()
 
@@ -47,7 +50,6 @@ def run_metadata_wrapper(image_path):
 def analyze_image(file: UploadFile = File(...)):
     unique_filename = f"temp_{uuid.uuid4().hex}_{file.filename}"
     try:
-        print("hello")
         with open(unique_filename, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
@@ -61,7 +63,11 @@ def analyze_image(file: UploadFile = File(...)):
                     ("Laplacian", NoiseAnalysis.laplacian_check),
                     ("Median", NoiseAnalysis.median_check),
                     ("Local Variance", NoiseAnalysis.local_variance_check),
-                    ("Block Boundary", NoiseAnalysis.block_boundary_check)]
+                    ("Block Boundary", NoiseAnalysis.block_boundary_check),
+                    ("NLF", NLF.nlf_analyze),
+                    ("DCT", DCT.dct_analyze),
+                    ("GAN frequency", GANMonitor.analyze)]
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             futures = {executor.submit(run_timed_test, name, func, unique_filename): name for name , func in job_list}
 
