@@ -3,7 +3,7 @@ import io
 import re
 import time
 from PIL import Image, ImageCms
-from pyexiv2 import ImageMetadata
+import pyexiv2
 
 
 class Metadata:
@@ -32,6 +32,8 @@ class Metadata:
                 "hex_signatures": [],
                 "history_count": 0,
                 "thumbnail_analysis": "Not Detected",
+                "camera_make": None,
+                "camera_model": None,
                 "software_trace": None,
                 "icc_profile_name": None,
                 "chroma_subsampling": None,
@@ -87,7 +89,7 @@ class Metadata:
 
             # Metadata Tags & History Analysis
             try:
-                metadata = ImageMetadata(image_path)
+                metadata = pyexiv2.ImageMetadata(image_path)
                 metadata.read()
 
                 # Helper to safely get raw values
@@ -123,6 +125,14 @@ class Metadata:
                 if soft:
                     report['flags']['software_trace_found'] = True
                     report['data']['software_trace'] = soft
+
+                make = get_val('Exif.Image.Make')
+                if make:
+                    report['data']['camera_make'] = make
+
+                model = get_val('Exif.Image.Model')
+                if make:
+                    report['data']['camera_model'] = model
 
                 # XMP History Count (Deep Edit Check)
                 history_keys = [k for k in metadata.xmp_keys if 'History' in k]
@@ -198,7 +208,7 @@ class Metadata:
 
 
 if __name__ == "__main__":
-    input_path = "Testing Images/testcase3.jpg"  # Change this to image you want to check
+    input_path = "/home/pri/Dataset/Real/Camera Dataset/Dresden_Exp/Nikon_D70/Nikon_D70_0_19607.JPG"  # Change this to image you want to check
 
     if os.path.exists(input_path):
         start_time = time.time()
