@@ -8,7 +8,7 @@ class GHOST:
         return metrics, image
 
 if __name__ == "__main__":
-    input_path = "Testing Images/testcase13.jpg"  # Change this to image you want to check
+    input_path = "/home/pri/Dataset/Spliced Images Dataset/Au/Au_ani_00001.jpg"  # Change this to image you want to check
     start_time = time.time()
     jpeg_ghost_result_metrics, jpeg_ghost_result_image = GHOST.jpeg_ghost(input_path)
     end_time = time.time()

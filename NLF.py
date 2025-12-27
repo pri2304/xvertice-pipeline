@@ -99,7 +99,7 @@ class NLF:
 
 
 if __name__ == "__main__":
-    input_path = "Testing Images/testcase15.jpeg"
+    input_path = "/home/pri/Dataset/Fake/Faceforensics/DeepFakeDetection/07_20__outside_talking_pan_laughing__KV6Q7D6C_frame_0.jpg"
     start_time = time.time()
 
     nlf_metrics, nlf_graph_buffer = NLF.nlf_analyze(input_path)

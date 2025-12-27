@@ -208,7 +208,7 @@ class Metadata:
 
 
 if __name__ == "__main__":
-    input_path = "/home/pri/Dataset/Real/Camera Dataset/Dresden_Exp/Nikon_D70/Nikon_D70_0_19607.JPG"  # Change this to image you want to check
+    input_path = "/home/pri/Downloads/project-3-001/project/original_1c27696c-7aaa-4d71-8cb4-06fd1a20c6fe_PXL_20251030_072711123.jpg"  # Change this to image you want to check
 
     if os.path.exists(input_path):
         start_time = time.time()
