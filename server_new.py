@@ -231,4 +231,4 @@ def analyze_image(file: UploadFile = File(...)):
         if os.path.exists(unique_filename):
             os.remove(unique_filename)
 
-# To run: uvicorn main_server:app --host 0.0.0.0 --port 8000
+# To run: uvicorn server_new:app --host 0.0.0.0 --port 8000
