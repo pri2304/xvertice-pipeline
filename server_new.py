@@ -7,11 +7,12 @@ import pandas as pd
 import torch
 import joblib
 from fastapi import FastAPI, UploadFile, File
+from fastapi.staticfiles import StaticFiles
+from fastapi.background import BackgroundTasks
 from torchvision import transforms
 from PIL import Image
 
-# --- 1. IMPORT FORENSIC MODULES ---
-# Ensure these files are in the same directory
+# --- 1. IMPORT MODULES ---
 from noise_analysis_test import NoiseAnalysis
 from jpeg_ghost_analysis import GHOST
 from metadata_analysis_final import Metadata
@@ -20,30 +21,74 @@ from NLF import NLF
 from DCT import DCT
 from GAN_frequency import GANMonitor
 
-# --- 2. SERVER CONFIGURATION ---
-# mimicking low-spec server
+# --- 2. CONFIGURATION ---
 DEVICE = "cpu"
-torch.set_num_threads(1)  # Prevent PyTorch from hogging all CPU cores
+torch.set_num_threads(1)
 
 CNN_MODEL_PATH = "Models/efficientnet_b4_forensics_best.pth"
 GBT_MODEL_PATH = "Models/forensic_gbt_model.pkl"
+RESULTS_DIR = "results"
 
-# Initialize App
+# Ensure results folder exists
+os.makedirs(RESULTS_DIR, exist_ok=True)
+
 app = FastAPI()
+
+# Mount the results directory so images are accessible via URL
+# Access via: http://server_ip:8000/results/filename.png
+app.mount("/results", StaticFiles(directory=RESULTS_DIR), name="results")
 
 # Global Models
 cnn_model = None
 gbt_model = None
 cnn_transforms = None
-feature_columns = []  # To ensure correct GBT column order
+feature_columns = []
 
 
-# --- 3. HELPER: FLATTENER (Crucial for GBT) ---
+# --- 3. CLEANUP TASK ---
+def remove_file(path: str):
+    """Background task to remove files after response is sent."""
+    try:
+        if os.path.exists(path):
+            os.remove(path)
+    except Exception as e:
+        print(f"Error cleaning up {path}: {e}")
+
+
+# --- 4. HELPER: SAVE IMAGE TO DISK ---
+def save_visualization(obj, base_filename, suffix):
+    """
+    Saves PIL Image or BytesIO to disk and returns the URL.
+    """
+    if obj is None:
+        return None
+
+    filename = f"{base_filename}_{suffix}.png"
+    filepath = os.path.join(RESULTS_DIR, filename)
+
+    try:
+        # Case A: PIL Image
+        if isinstance(obj, Image.Image):
+            obj.save(filepath, format="PNG")
+            return f"/results/{filename}"
+
+        # Case B: BytesIO Buffer (Matplotlib)
+        elif hasattr(obj, 'read'):
+            obj.seek(0)
+            with open(filepath, "wb") as f:
+                f.write(obj.read())
+            return f"/results/{filename}"
+
+        return None
+    except Exception as e:
+        print(f"Error saving viz: {e}")
+        return None
+
+
+# --- 5. FLATTENER (Same as before) ---
 def flatten_data(prefix, data):
-    """Converts nested forensic results into flat GBT features."""
     flat = {}
-    if data is None or not isinstance(data, dict):
-        return flat
+    if data is None or not isinstance(data, dict): return flat
 
     if prefix == "meta":
         flags = data.get("flags", {})
@@ -75,60 +120,66 @@ def flatten_data(prefix, data):
     return flat
 
 
-# --- 4. STARTUP EVENT ---
+# --- 6. STARTUP ---
 @app.on_event("startup")
 def load_resources():
     global cnn_model, gbt_model, cnn_transforms, feature_columns
-    print("--- Server Startup: Loading Models ---")
+    print("--- Server Startup ---")
 
     # Load CNN
     try:
-        # Re-using your extraction logic roughly
         import torchvision.models as models
         import torch.nn as nn
-
-        # Define architecture manually if load_cnn_model isn't perfectly portable
         model = models.efficientnet_b4(weights=None)
         model.classifier[1] = nn.Linear(model.classifier[1].in_features, 1)
         model.load_state_dict(torch.load(CNN_MODEL_PATH, map_location=DEVICE))
         model.to(DEVICE)
         model.eval()
         cnn_model = model
-
         cnn_transforms = transforms.Compose([
             transforms.Resize((380, 380)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
-        print("✅ CNN Loaded (CPU Mode)")
+        print("✅ CNN Loaded")
     except Exception as e:
-        print(f"❌ CNN Load Failed: {e}")
+        print(f"❌ CNN Error: {e}")
 
     # Load GBT
     try:
         gbt_model = joblib.load(GBT_MODEL_PATH)
-        # Extract feature names if available to ensure order
         if hasattr(gbt_model, "feature_names_in_"):
             feature_columns = list(gbt_model.feature_names_in_)
-        else:
-            print("⚠️ GBT model has no feature names stored. Using fallback list.")
-            # Fallback: List the features manually if needed, or rely on dict keys
         print("✅ GBT Loaded")
     except Exception as e:
-        print(f"❌ GBT Load Failed: {e}")
+        print(f"❌ GBT Error: {e}")
 
 
-# --- 5. TEST RUNNER ---
-def run_timed_test(test_name, test_func, image_path):
+# --- 7. TEST RUNNER ---
+def run_timed_test(test_name, test_func, image_path, request_id):
+    """
+    Runs test and saves visualization to disk.
+    """
     start = time.time()
     try:
         result = test_func(image_path)
-        # Unwrap tuple returns
-        data = result[0] if isinstance(result, (tuple, list)) else result
+
+        data_payload = {}
+        visual_url = None
+
+        if isinstance(result, (tuple, list)):
+            data_payload = result[0]
+            if len(result) > 1:
+                # Save Image to Disk and get URL
+                visual_url = save_visualization(result[1], request_id, test_name.replace(" ", "_").lower())
+        else:
+            data_payload = result
+
         return {
             "test_name": test_name,
             "status": "success",
-            "data": data,
+            "data": data_payload,
+            "image_url": visual_url,  # URL path for frontend
             "time_taken": round(time.time() - start, 4)
         }
     except Exception as e:
@@ -140,19 +191,24 @@ def run_timed_test(test_name, test_func, image_path):
         }
 
 
-# --- 6. MAIN ENDPOINT ---
+# --- 8. MAIN ENDPOINT ---
 @app.post("/analyze")
-def analyze_image(file: UploadFile = File(...)):
-    unique_filename = f"temp_{uuid.uuid4().hex}_{file.filename}"
+def analyze_image(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
+    # Create unique ID for this request
+    request_id = uuid.uuid4().hex
+    unique_filename = f"temp_{request_id}_{file.filename}"
+
     try:
-        # Save File
         with open(unique_filename, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        server_start = time.time()
-        full_report = {"filename": file.filename}
+        # Add original file to cleanup list
+        background_tasks.add_task(remove_file, unique_filename)
 
-        # A. Run CNN Prediction (Sequential - avoids threading issues with PyTorch)
+        server_start = time.time()
+        full_report = {"filename": file.filename, "request_id": request_id}
+
+        # A. CNN
         cnn_score = 0.0
         if cnn_model:
             try:
@@ -163,9 +219,9 @@ def analyze_image(file: UploadFile = File(...)):
                     cnn_score = float(torch.sigmoid(out).item())
                 full_report["cnn_analysis"] = {"score": cnn_score, "status": "success"}
             except Exception as e:
-                full_report["cnn_analysis"] = {"score": 0.0, "status": "error", "msg": str(e)}
+                full_report["cnn_analysis"] = {"score": 0.0, "status": "error"}
 
-        # B. Run CPU Tests (Parallel)
+        # B. CPU Tests
         job_list = [
             ("ela", ELA.ela),
             ("ghost", GHOST.jpeg_ghost),
@@ -181,35 +237,29 @@ def analyze_image(file: UploadFile = File(...)):
         ]
 
         raw_results = {}
-        # Max workers = 2 to stay safe on a 2-core server
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-            future_map = {executor.submit(run_timed_test, name, func, unique_filename): name for name, func in job_list}
+            # Pass request_id to save images uniquely
+            future_map = {executor.submit(run_timed_test, name, func, unique_filename, request_id): name for name, func
+                          in job_list}
             for future in concurrent.futures.as_completed(future_map):
                 res = future.result()
                 raw_results[future_map[future]] = res
 
         full_report["forensic_tests"] = raw_results
 
-        # C. Prepare Data for GBT
-        # 1. Flatten everything
+        # C. GBT
         flat_features = {"cnn_score": cnn_score}
         for prefix, res_obj in raw_results.items():
             if res_obj["status"] == "success":
                 flat_features.update(flatten_data(prefix, res_obj["data"]))
 
-        # 2. Align with GBT Columns
-        # Create DataFrame with 1 row
         input_df = pd.DataFrame([flat_features])
-
-        # Ensure all required columns exist (fill missing with 0)
         if feature_columns:
             for col in feature_columns:
                 if col not in input_df.columns:
                     input_df[col] = 0.0
-            # Sort columns to match training order EXACTLY
             input_df = input_df[feature_columns]
 
-        # D. Run GBT Prediction
         if gbt_model:
             prob_fake = float(gbt_model.predict_proba(input_df)[:, 1][0])
             verdict = "FAKE" if prob_fake > 0.5 else "REAL"
@@ -218,17 +268,11 @@ def analyze_image(file: UploadFile = File(...)):
                 "fake_probability": round(prob_fake * 100, 2),
                 "confidence_score": round(prob_fake, 4)
             }
-        else:
-            full_report["final_verdict"] = {"error": "Model not loaded"}
 
         full_report["total_time"] = round(time.time() - server_start, 4)
         return full_report
 
     except Exception as e:
         return {"status": "CRASH", "error": str(e)}
-
-    finally:
-        if os.path.exists(unique_filename):
-            os.remove(unique_filename)
 
 # To run: uvicorn server_new:app --host 0.0.0.0 --port 8000
