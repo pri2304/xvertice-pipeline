@@ -10,9 +10,9 @@ import joblib
 import os
 
 # ================= CONFIGURATION =================
-INPUT_CSV = "Datasets/gbt_training_features_flattened.csv"
+INPUT_CSV = "Datasets/final_merged_dataset.csv"
 MODEL_PKL_PATH = "Models/forensic_gbt_model.pkl"
-FEATURE_CSV_PATH = "GBT Stuff/feature_importance_full.csv"  # <-- NEW: Saves full list here
+FEATURE_CSV_PATH = "../GBT Stuff/feature_importance_full.csv"  # <-- NEW: Saves full list here
 TEST_SIZE = 0.15
 VAL_SIZE = 0.15
 

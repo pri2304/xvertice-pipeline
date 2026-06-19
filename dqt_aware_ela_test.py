@@ -56,7 +56,7 @@ class ELA:
             return None
 
 if __name__ == "__main__":
-    input_path = "Testing Images/testcase13.jpg"  # Change this to image you want to check
+    input_path = "/home/pri/Downloads/PXL_20251222_150739847.RAW-01.COVER.jpg"  # Change this to image you want to check
     start_time = time.time()
     ela_result_metrics, ela_result_image = ELA.ela(input_path)
     end_time = time.time()

@@ -1,0 +1,30 @@
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Model outputs
+outputs/
+logs/
+
+# Large models
+*.pt
+*.pth
+*.ckpt
+
+# Secrets
+.env
+
+# JetBrains IDEs
+.idea

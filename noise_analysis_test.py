@@ -237,7 +237,7 @@ class NoiseAnalysis:
 
 
 if __name__ == "__main__":
-    input_path = "Testing Images/testcase13.jpg"  # Change this to image you want to check
+    input_path = "/home/pri/Downloads/PXL_20251222_150739847.RAW-01.COVER.jpg"  # Change this to image you want to check
 
     # 0. Exposure Check
     start_time = time.time()

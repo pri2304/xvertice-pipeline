@@ -18,7 +18,7 @@ TEMP_NEW_EXTRACTED = "temp_new_features.csv"
 FINAL_MERGED_CSV = "final_merged_dataset.csv"
 
 # Model Config
-CNN_MODEL_PATH = "Models/efficientnet_b4_multihead_best.pth"
+CNN_MODEL_PATH = "../Models/efficientnet_b4_multihead_best.pth"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 TEST_WORKERS = 8
 IMG_SIZE = 380
