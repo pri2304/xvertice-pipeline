@@ -259,7 +259,7 @@ A detailed demonstration video of the system is available through the project's 
 * Model predictions
 * Reporting workflow
 
-
+[Link to Demo](https://www.linkedin.com/feed/update/urn:li:activity:7467541821951307776)
 
 ---
 
